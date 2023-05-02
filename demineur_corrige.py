@@ -83,7 +83,7 @@ Cette fonction ne renvoie rien, puisqu'elle modifie la grille existante (mutabil
             compute_cell(grid,x,y)
 
 
-def affichegrid(grid, colors= True, detonate= False) :
+def affichegrid(grid, colors= False, detonate= False) :
     """ fonction traçant la grille dans la console
 Si l'argument colors est True, alors certaines cases sont colorées :
 - en vert lorsque le joueur agagné, on représente les bombes ;
