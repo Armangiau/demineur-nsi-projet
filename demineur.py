@@ -45,11 +45,12 @@ Exemples sur la grille | 0 | -1 | -1 |
 >>> compute_cell(grid, 2, 2)
 -1
     """
+    size = len(grid)
     if grid[x][y].value == -1:
         return -1
     count = 0
-    for i in range(max(0, x-1), min(x+2, len(grid))):
-        for j in range(max(0, y-1), min(y+2, len(grid[0]))):
+    for i in range(max(0, x-1), min(x+2, size)):
+        for j in range(max(0, y-1), min(y+2, size)):
             if grid[i][j].value == -1:
                 count += 1
     grid[x][y].value = count
@@ -111,11 +112,11 @@ La fonction ne renvoie rien, et ne modifie pas la grille. Elle ne fait qu'affich
                 cell_char = Fore.RED + "◕" + Fore.WHITE
             elif detonate and colors and grid[line][col].flag and grid[line][col].value != -1:
                 cell_char = Fore.RED + "f" + Fore.WHITE
-            elif colors and grid[line][col].flag :
+            elif colors and grid[line][col].flag:
                 cell_char = Fore.GREEN + "◕" + Fore.WHITE
-            elif grid[line][col].flag :
+            elif grid[line][col].flag:
                 cell_char = "f"
-            elif grid[line][col].covered :
+            elif grid[line][col].covered:
                 cell_char = "◘"
             elif grid[line][col].value == 0:
                 cell_char = " "
@@ -131,7 +132,7 @@ La fonction ne renvoie rien, et ne modifie pas la grille. Elle ne fait qu'affich
     print()
 
 
-def ask_position(grid):
+def ask_position(grid: list[list[Cell]]):
     """ Fonction dumbProof demandant au joueur une position sous la forme suivante :
 soit du type A3, B4, C0, etc... où la lettre représente l'indice de ligne (A=0, B=1, ...), et le chiffre l'indice de colonne.
     Une telle saisie découvre la case à laquelle elle fait référence.
@@ -164,14 +165,14 @@ Non testable par doctest
             print("Saisie invalide. Réessayez.")
             continue
         letter_val = ord(position[0].upper()) - ord('A')
-        num_val = int(position[1])
+        num_val = int(position[1]) - 1
         if letter_val < 0 or letter_val >= size or num_val < 0 or num_val >= size:
             print("Saisie invalide. Réessayez.")
             continue
         return (flag, letter_val, num_val)
 
 
-def propagate(grid, x, y):
+def propagate(grid: list[list[Cell]], x: int, y: int):
     """ fonction propageant la découverte de cellules de proche en proche selon les règles classiques du démineur,
 en partant d'une cellule dont les coordonnées x et y sont données, x étant l'indice de ligne, et y l'indice de colonne.
 L'algorithme est le suivant :
@@ -184,31 +185,62 @@ le tuple (x,y)
         voisines à la fois à la liste to_compute et à la liste to_uncover
 3) Parcourir la liste to_uncover et découvrir toutes les cellules correspondantes.
 """
-    ...
+    size = len(grid)
+    to_uncover = [(x, y)]
+    to_compute = [(x, y)]
+    while to_compute:
+        x, y = to_compute.pop()
+        grid[x][y].covered = False
+        if grid[x][y].value == 0:
+            for adjacent_x in range(max(0, x - 1), min(size, x + 2)):
+                for adjacent_y in range(max(0, y - 1), min(size, y + 2)):
+                    if (adjacent_x, adjacent_y) not in to_uncover:
+                        to_uncover.append((adjacent_x, adjacent_y))
+                        to_compute.append((adjacent_x, adjacent_y))
 
 
-def apply_position(grid, flag, x, y):
+def apply_position(grid: list[list[Cell]], flag: bool, x: int, y: int):
     """ fonction modifiant la grille selon la saisie proposée, et renvoyant True si la position est valide
 (placement de drapeau ou case pouvant être découverte (= sans bombe)) et False si la position est celle d'une bombe.
 Dans le cas où la case ne possède pas de bombe, fait appel à la fonction propagate pour découvrir toutes les cellules nécessaires"""
-    ...
+    if flag:
+        grid[x][y].flag = not grid[x][y].flag
+        return True
+    if grid[x][y].value != -1:
+        propagate(grid, x, y)
+        return True
+    return False
 
 
-def count_uncovered(grid):
+def count_uncovered(grid: list[list[Cell]]):
     """ fonction comptant le nombre de caese découvertes sur le plateau de jeu"""
-    ...
+    return sum(sum(item.covered for item in line) for line in grid)
 
 
-def count_flagged(grid):
+def count_flagged(grid: list[list[Cell]]):
     """ fonction comptant le nombre de cases comportat un drapeau"""
-    ...
+    return sum(sum(item.flag for item in line) for line in grid)
 
 
-def main_console(taille, difficulte=1):
+def main_console(taille: int, difficulte=1):
     """ Fonction principale, lançant une partie de démineur avec la taille donnée, et un nombre de bombe correspondant
 à taille + difficulte.
 En fin de partie, montre au joueur si il a perdu la position de toutes les bombes."""
-    ...
+    grid = init_grid(taille)
+    nb_bombs = taille+difficulte
+    make_grid(grid, nb_bombs)
+    colors = detonate = False
+    while True:
+        affichegrid(grid, colors, detonate)
+        if not apply_position(grid, *ask_position(grid)):
+            colors = detonate = True
+            print("Looser")
+            break
+        if count_flagged(grid) == nb_bombs:
+            colors = True
+            print("Winner")
+            break
+    affichegrid(grid, colors, detonate)
 
 
 if __name__ == "__main__":
