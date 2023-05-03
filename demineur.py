@@ -86,11 +86,10 @@ Non testatble dans doctest.
 La fonction ne renvoie rien, et ne modifie pas la grille. Elle ne fait qu'afficher.
     """
     print()
-    print("\t\t\tMINESWEEPER\n")
     grid_len = len(grid)
     to_print = "   "
     for i in range(grid_len):
-        to_print = to_print + "     " + str(i + 1)
+        to_print = to_print + "     " + str(i)
     print(to_print)
 
     for line in range(grid_len):
@@ -165,7 +164,7 @@ Non testable par doctest
             print("Saisie invalide. Réessayez.")
             continue
         letter_val = ord(position[0].upper()) - ord('A')
-        num_val = int(position[1]) - 1
+        num_val = int(position[1])
         if letter_val < 0 or letter_val >= size or num_val < 0 or num_val >= size:
             print("Saisie invalide. Réessayez.")
             continue
@@ -234,11 +233,11 @@ En fin de partie, montre au joueur si il a perdu la position de toutes les bombe
         affichegrid(grid, colors, detonate)
         if not apply_position(grid, *ask_position(grid)):
             colors = detonate = True
-            print("Looser")
+            print(Fore.RED + "\n\t\tLOOSER\n" + Fore.WHITE)
             break
         if count_flagged(grid) == nb_bombs:
             colors = True
-            print("Winner")
+            print(Fore.GREEN + "\n\t\tWINNER\n" + Fore.WHITE)
             break
     affichegrid(grid, colors, detonate)
 
