@@ -1,5 +1,6 @@
 import random
 from colorama import Fore
+import save_score
 
 
 class Cell:
@@ -15,6 +16,18 @@ class Cell:
         self.flag = False
         self.covered = True
 
+def timing():
+    import time
+    first_time = time.time()
+    final_time = time.time()
+    def dif_time():
+        final_time = time.time()
+        dif_time_s = final_time - first_time
+        formated_time = f'{dif_time_s//60}min {round(dif_time_s%60, 2)}s'
+        return formated_time
+    def score_time():
+        return round(final_time - first_time, 2)
+    return dif_time, score_time
 
 def init_grid(taille: int):
     """ Crée et renvoie une grille carré de dimension taille*taille
@@ -49,9 +62,9 @@ Exemples sur la grille | 0 | -1 | -1 |
     if grid[x][y].value == -1:
         return -1
     count = 0
-    for i in range(max(0, x-1), min(x+2, size)):
-        for j in range(max(0, y-1), min(y+2, size)):
-            if grid[i][j].value == -1:
+    for right_or_left in range(max(0, x-1), min(x+2, size)):
+        for up_or_down in range(max(0, y-1), min(y+2, size)):
+            if grid[right_or_left][up_or_down].value == -1:
                 count += 1
     grid[x][y].value = count
     return count
@@ -76,7 +89,7 @@ Cette fonction ne renvoie rien, puisqu'elle modifie la grille existante (mutabil
             compute_cell(grid, x, y)
 
 
-def affichegrid(grid: list[list[Cell]], colors=False, detonate=False):
+def affichegrid(grid: list[list[Cell]], time, colors=False, detonate=False):
     """ fonction traçant la grille dans la console
 Si l'argument colors est True, alors certaines cases sont colorées :
 - en vert lorsque le joueur agagné, on représente les bombes ;
@@ -85,9 +98,9 @@ L'argument detonate permet de savoir si le joueur a perdu.
 Non testatble dans doctest.
 La fonction ne renvoie rien, et ne modifie pas la grille. Elle ne fait qu'afficher.
     """
-    print()
+
     grid_len = len(grid)
-    to_print = "   "
+    to_print = f"Timer : {time()}\n   "
     for i in range(grid_len):
         to_print = to_print + "     " + str(i)
     print(to_print)
@@ -205,7 +218,7 @@ Dans le cas où la case ne possède pas de bombe, fait appel à la fonction prop
     if flag:
         grid[x][y].flag = not grid[x][y].flag
         return True
-    if grid[x][y].value != -1:
+    if grid[x][y].value == 0:
         propagate(grid, x, y)
         return True
     return False
@@ -226,20 +239,34 @@ def main_console(taille: int, difficulte=1):
 à taille + difficulte.
 En fin de partie, montre au joueur si il a perdu la position de toutes les bombes."""
     grid = init_grid(taille)
-    nb_bombs = taille+difficulte
+    message_level = "Choisissez votre niveau de difficulté ! (débutant/initié/moyen/dificile/expert) \nSeuls les joueurs du niveau expert peuvent enregitrerleur score"
+    level = save_score.get_from_option(message_level, set('débutant', 'initié', 'moyen', 'dificile', 'expert'))
+    level_table = {
+        "débutant": -4,
+        "initié": -2,
+        "moyen": 0,
+        "difficile": 2,
+        "expert": 4
+    }
+
+    nb_bombs = taille + taille//level_table[level]
     make_grid(grid, nb_bombs)
-    colors = detonate = False
+    winner = False
+    time, final_time = timing()
     while True:
-        affichegrid(grid, colors, detonate)
+        affichegrid(grid, time,False, False)
         if not apply_position(grid, *ask_position(grid)):
-            colors = detonate = True
             print(Fore.RED + "\n\t\tLOOSER\n" + Fore.WHITE)
             break
         if count_flagged(grid) == nb_bombs:
-            colors = True
+            winner = True
             print(Fore.GREEN + "\n\t\tWINNER\n" + Fore.WHITE)
             break
-    affichegrid(grid, colors, detonate)
+    affichegrid(grid, time, True, not winner)
+    if winner and level == "expert":
+        nom = save_score.demander_str('Quel est votre prénom ? ')
+        save_score.demande_inscription(final_time(), nom)
+    save_score.ask_view_score()
 
 
 if __name__ == "__main__":
