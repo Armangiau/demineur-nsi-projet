@@ -16,18 +16,22 @@ class Cell:
         self.flag = False
         self.covered = True
 
+
 def timing():
     import time
     first_time = time.time()
     final_time = time.time()
+
     def dif_time():
         final_time = time.time()
         dif_time_s = final_time - first_time
         formated_time = f'{dif_time_s//60}min {round(dif_time_s%60, 2)}s'
         return formated_time
+
     def score_time():
         return round(final_time - first_time, 2)
     return dif_time, score_time
+
 
 def init_grid(taille: int):
     """ Crée et renvoie une grille carré de dimension taille*taille
@@ -218,7 +222,7 @@ Dans le cas où la case ne possède pas de bombe, fait appel à la fonction prop
     if flag:
         grid[x][y].flag = not grid[x][y].flag
         return True
-    if grid[x][y].value == 0:
+    if grid[x][y].value != -1:
         propagate(grid, x, y)
         return True
     return False
@@ -239,22 +243,29 @@ def main_console(taille: int, difficulte=1):
 à taille + difficulte.
 En fin de partie, montre au joueur si il a perdu la position de toutes les bombes."""
     grid = init_grid(taille)
-    message_level = "Choisissez votre niveau de difficulté ! (débutant/initié/moyen/dificile/expert) \nSeuls les joueurs du niveau expert peuvent enregitrerleur score"
-    level = save_score.get_from_option(message_level, set('débutant', 'initié', 'moyen', 'dificile', 'expert'))
+    
+    print("""
+
+    Choisissez votre niveau de difficulté ! (débutant/initié/moyen/dificile/expert) 
+    Seuls les joueurs du niveau expert peuvent enregitrer leur score
+
+    """)
+    message_level = "Niveau de dificulté : "
+    level = save_score.get_from_option(
+        message_level, {'débutant', 'initié', 'moyen', 'dificile', 'expert'})
     level_table = {
         "débutant": -4,
-        "initié": -2,
-        "moyen": 0,
+        "initié": 0,
+        "moyen": 4,
         "difficile": 2,
-        "expert": 4
+        "expert": 1
     }
-
     nb_bombs = taille + taille//level_table[level]
     make_grid(grid, nb_bombs)
     winner = False
     time, final_time = timing()
     while True:
-        affichegrid(grid, time,False, False)
+        affichegrid(grid, time, False, False)
         if not apply_position(grid, *ask_position(grid)):
             print(Fore.RED + "\n\t\tLOOSER\n" + Fore.WHITE)
             break
@@ -264,13 +275,12 @@ En fin de partie, montre au joueur si il a perdu la position de toutes les bombe
             break
     affichegrid(grid, time, True, not winner)
     if winner and level == "expert":
-        nom = save_score.demander_str('Quel est votre prénom ? ')
-        save_score.demande_inscription(final_time(), nom)
+        save_score.demande_inscription(final_time(), 'Quel est votre prénom ?')
     save_score.ask_view_score()
 
 
 if __name__ == "__main__":
     from doctest import testmod
     testmod()
-    taille = 6
+    taille = save_score.demande_number('Quel taille de tableau souhaitez vous ?', (4, 10), True)
     main_console(taille)

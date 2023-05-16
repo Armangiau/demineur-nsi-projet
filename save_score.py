@@ -6,7 +6,7 @@ Demande d'entrer une chaine de caractère
         entree_utilisteur = input(message).strip()
         if entree_utilisteur:
             return entree_utilisteur
-        print("Vous n'avez rien entré")
+        print("Vous n'avez rien entré !")
 
 
 def demande_number(message, interval: tuple[int | float, int | float] = (-float('Infinity'), float('Infinity')), must_be_int = False) -> int|float:
@@ -30,10 +30,10 @@ def demande_number(message, interval: tuple[int | float, int | float] = (-float(
 
 
 def get_from_option(message: str, options: set[str]):
-    user_input = ''
+    user_input = demander_str(message).lower()
     while user_input not in options:
         print(
-            f'Je ne comprend répondez en choisissant parmis ces options: f{", ".join(options)}')
+            f'\nJe ne comprend répondez en choisissant parmis ces options: {", ".join(options)}')
         user_input = demander_str(message).lower()
     return user_input
 
@@ -43,7 +43,7 @@ def demander(message: str) -> bool:
     Le joueur/La joueuse doit pouvoir répondre par oui (ou o) ou par non (ou n),
     et la fonction doit être dumbproof.
     """
-    return get_from_option(message + " (o/n)", set('o', 'n', 'oui', 'non', 'yes', 'no', 'y')) in set('o', 'oui', 'yes', 'y')
+    return get_from_option(message + " (o/n)", {'o', 'n', 'oui', 'non', 'yes', 'no', 'y'}) in {'o', 'oui', 'yes', 'y'}
 
 
 def ask_view_score():
@@ -67,9 +67,9 @@ def same_gamer(name, score, same_name_gamer):
     return demander_str('Votre nom à déjà été enregistré:\nVotre noveau nom est: '), score
 
 
-def demande_inscription(time_score: int, gamer: str) -> None:
+def demande_inscription(time_score: int, get_id_message: str) -> None:
     if demander('Voulez vous sauvegarder votre partie ?'):
-        sauve_score(gamer, time_score, same_gamer)
+        sauve_score(demander_str(get_id_message), time_score, same_gamer)
 
 
 class sauve_score:
