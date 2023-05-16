@@ -14,10 +14,10 @@ def demande_number(message, interval: tuple[int | float, int | float] = (-float(
         number = demander_str(message)
         try:
             number = int(number)
-            if must_be_int:
-                print("Vous n'avez pas entré un nombre entié!")
-                continue
         except ValueError:
+            if must_be_int:
+                print("Vous n'avez pas entré un nombre entié !")
+                continue
             try:
                 number = float(number)
             except ValueError:
