@@ -131,8 +131,8 @@ class read_save:
                 lines = file.readlines()
                 hight_score = [None]*len(lines)
                 for i, line in enumerate(lines):
-                    nom, score, replay = line.split(" / ")
-                    replay = replay.replace('\n', '')
+                    nom, score = line.split(" / ")
+                    score = score.replace('\n', '')
                     try:
                         hight_score[i] = {"nom": nom, "score": int(score)}
                     except ValueError:
